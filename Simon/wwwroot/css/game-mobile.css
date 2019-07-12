@@ -1,0 +1,207 @@
+.active {
+    background-color: #70776f;
+}
+
+.button {
+    height: 170px;
+    width: 170px;
+    border: 2px solid #999999;
+    box-shadow: 5px 10px 10px #323232;
+}
+
+.buttonRed {
+    background-color: #f4291a;
+    border-radius: 100% 0 0 0;
+    margin-left: -41px;
+    margin-bottom: -10px;
+    position: relative;
+    transition: .5s ease;
+    top: 25px;
+    left: 441px;
+}
+
+.buttonGreen {
+    background-color: #10a310;
+    border-radius: 0 100% 0 0;
+    position: relative;
+    transition: .5s ease;
+    top: 25px;
+    left: 440px;
+    bottom: -191px;
+}
+
+.buttonYellow {
+    background-color: #f9e039;
+    border-radius: 0 0 100% 0;
+    margin-left: 16px;
+    margin-bottom: -10px;
+    position: relative;
+    transition: .5s ease;
+    top: 200px;
+    left: 174px;
+}
+
+.buttonBlue {
+    background-color: #2948e5;
+    border-radius: 0 0 0 100%;
+    margin-left: -98px;
+    margin-bottom: -10px;
+    position: relative;
+    transition: .5s ease;
+    top: 200px;
+    right: -192px;
+    bottom: -191px;
+}
+
+.btn-gradient {
+    background-image: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.2) 49%, rgba(0,0,0,0.15) 83%, rgba(0,0,0,0.05));
+    background-repeat: repeat-x;
+}
+
+.controls {
+    position: absolute;
+    top: 145px;
+    left: 513px;
+    z-index: 500;
+    width: 115px;
+    height: 115px;
+    border: 2px solid #999999;
+    border-radius: 100%;
+    background-color: #373a37;
+    text-align: center;
+}
+
+.gameRule-box {
+    position: absolute;
+    margin-top: 100px;
+    width: 500px;
+    height: 300px;
+    border: 5px solid darkgray;
+    border-radius: 10px;
+    background-color: white;
+    box-shadow: 30px 30px 30px black;
+    z-index: 900;
+    color: green;
+    font-family: monospace;
+    font-size: 16px;
+}
+
+.game {
+    position: absolute;
+    left: -373px;
+    top: 120px;
+}
+
+h2 {
+    text-align: center;
+    margin-left: 105px;
+}
+
+.showmid {
+    margin-left: 105px;
+}
+
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    top: 2px;
+}
+
+    /* Hide default HTML checkbox */
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e23c16;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+input:checked + .slider {
+    background-color: #4dce33;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
+
+.switch-toggle {
+    width: 12em;
+}
+
+    .switch-toggle label:not(.disabled) {
+        cursor: pointer;
+    }
+
+
+/*Save User Sidebar*/
+#sidebar {
+    /* for the animation */
+    transition: margin 0.3s ease;
+}
+
+.collapsed {
+    /* hide it for small displays*/
+    display: none;
+}
+
+@media (min-width: 992px) {
+    .collapsed {
+        display: block;
+        /* same width as sidebar */
+        margin-right: -25%;
+    }
+}
+
+#simongame {
+    /* for the animation */
+    transition: width 0.3s ease;
+}
+
+#rules {
+    visibility: hidden;
+}
+
+#rules-mobile {
+    visibility: visible;
+}

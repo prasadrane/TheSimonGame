@@ -1,0 +1,8 @@
+.game-box {
+    position: absolute;
+    top: 150px;
+}
+
+.active {
+    background-color: hsl(50, 50%, 10%);
+}

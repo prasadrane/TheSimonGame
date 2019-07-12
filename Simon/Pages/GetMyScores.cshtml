@@ -1,0 +1,150 @@
+﻿@page
+@model Simon.Pages.GetMyScoresModel
+@{
+    ViewData["Title"] = "Previous Scores";
+}
+
+
+<div id="app">
+    <h2 style="text-align:left;">Previous Scores</h2>
+    <div class="row">
+        <div class="col-2"></div>
+        <div class="col-4">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Your Name" v-model="userName">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" v-on:click="getScores()">Show</button>
+                </span>
+            </div>
+        </div>
+        <div class="col-2"></div>
+    </div>
+    <br />
+
+    @*Easy Scores*@
+    <div v-if="easyScores.length > 0">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="glyphicon glyphicon-list"></i> Easy</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="list-group">
+                    <li v-for="score in easyScores" class="list-group-item">
+                        {{score}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+    @*Medium Scores*@
+    <div v-if="medScores.length > 0">
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="glyphicon glyphicon-list"></i> Medium</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="list-group">
+                    <li v-for="score in medScores" class="list-group-item">
+                        {{score}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+    @*Hard Scores*@
+    <div v-if="hardScores.length > 0">
+        <div class="panel panel-danger">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="glyphicon glyphicon-list"></i> Hard</h3>
+            </div>
+            <div class="panel-body">
+                <ul class="list-group">
+                    <li v-for="score in hardScores" class="list-group-item">
+                        {{score}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    @*No scores found*@
+    <div v-if="userNotFound">
+        <h3>No scores found</h3>
+    </div>
+
+</div>
+
+
+@section scripts {
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                userName: "",
+                userNotFound: false,
+                easyScores: [],
+                medScores: [],
+                hardScores: []
+            },
+            mounted: function () {
+                // PERFORM ANY ACTIONS WHEN THE PAGE LOADS HERE - SIMILAR TO JQUERY DOCUMENT.READY
+
+            },
+            methods: {
+                getScoresByDifficulty: function (difficultyLevel) {
+                    console.log("Getting Scores for difficultyLevel:" + difficultyLevel);
+                    var self = this;
+                    if (self.userNotFound) {
+                        // do not make further api calls
+                        return;
+                    }
+                    $.ajax({
+                        url: "api/Users/GetUserScore?userName=" + self.userName + "&difficultyLevel=" + difficultyLevel,
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        method: 'GET'
+                    }).done(function (userScoresResponse, status, xhr) {
+                        // process the response when status code is 200-299
+                        switch (difficultyLevel) {
+                            case 1: self.easyScores = userScoresResponse;
+                                break;
+                            case 2: self.medScores = userScoresResponse;
+                                break;
+                            case 3: self.hardScores = userScoresResponse;
+                                break;
+                            default:
+                        }
+                    }).fail(function (xhr, status, error) {
+                        // deal with error from server (status code 400-599)
+                        if (error == "Not Found") {
+                            self.userNotFound = true;
+                        }
+                        else {
+                            alert("There was an error retrieving scores. Status: " + status + ", Error: " + error);
+                        }                        
+                    });
+                },
+                getScores: function () {
+                    var self = this;
+                    self.userNotFound = false;
+                    self.getScoresByDifficulty(1);
+                    self.getScoresByDifficulty(2);
+                    self.getScoresByDifficulty(3);
+                },
+                isAnyScoreFound: function () {
+                    var self = this;
+                    return ((self.easyScores.length > 0) || (self.medScores.length > 0) || (self.hardScores.length > 0))
+                }
+            },
+            computed: {
+                // CREATE ANY CALCULATED PROPERTIES HERE. THEY BEHAVE LIKE READ-ONLY DATA
+            }
+        });
+
+    </script>
+}
+

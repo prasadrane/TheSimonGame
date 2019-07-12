@@ -1,0 +1,397 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div id="app">
+    
+    <h2 v-if="gameOn">Round {{level+1}}</h2>
+
+    <br />
+    <div id="gameBoard" class="col-lg-9">
+
+        @*Difficulty Level Buttons*@
+        <div class="switch-toggle switch-3 switch-candy showmid">
+            <input id="easy" name="diff" type="radio" checked="checked" value="easy" v-model="difficultyLevel" />
+            <label for="easy" onclick="">EASY</label>
+
+            <input id="medium" name="diff" type="radio" value="med" v-model="difficultyLevel" />
+            <label for="medium" onclick="">MED</label>
+
+            <input id="hard" name="diff" type="radio" value="hard" v-model="difficultyLevel" />
+            <label for="hard" onclick="">HARD</label>
+
+            <a></a>
+        </div>
+
+        @*Game*@
+        <div class="game">
+            <button class="button buttonRed btn-gradient" v-on:click="clickGameButton(1)" v-bind:class="{ active: isRedButtonActive }"></button>
+
+            <button class="button buttonGreen btn-gradient" v-on:click="clickGameButton(2)" v-bind:class="{ active: isGreenButtonActive}"></button>
+
+            <div class="controls">
+                <p style="color: white; margin-top: 25px;">Slide to Play</p>
+                <label class="switch">
+                    <input id="startGameSwitch" type="checkbox" v-on:click="startGame()">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <button class="button buttonBlue btn-gradient" v-on:click="clickGameButton(3)" v-bind:class="{ active: isBlueButtonActive}"></button>
+            <button class="button buttonYellow btn-gradient" v-on:click="clickGameButton(4)" v-bind:class="{ active: isYellowButtonActive}"></button>
+        </div>
+
+        @*Game Sounds*@
+        <audio id="audio1">
+            <source src="https://s3.amazonaws.com/freecodecamp/simonSound1.mp3" type="audio/ogg">
+        </audio>
+        <audio id="audio2">
+            <source src="https://s3.amazonaws.com/freecodecamp/simonSound2.mp3" type="audio/ogg">
+        </audio>
+        <audio id="audio3">
+            <source src="https://s3.amazonaws.com/freecodecamp/simonSound3.mp3" type="audio/ogg">
+        </audio>
+        <audio id="audio4">
+            <source src="https://s3.amazonaws.com/freecodecamp/simonSound4.mp3" type="audio/ogg">
+        </audio>
+    </div>
+
+
+    @*Save Score*@
+    <!--Ask User to save Score when game ends-->
+    <button class="btn invisible" data-toggle="modal" data-target="#showSaveScoreModal" v-if="showSaveScorePopUp"></button>
+    <div class="modal fade" role="dialog" id="showSaveScoreModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h3 class="modal-title" style="color:dodgerblue;font-weight: bold; ">Game Over! Your score is {{level}}</h3>
+                    <h4 style="color:dodgerblue">Save Your Score</h4>
+                    <h5 v-if="isScoreSaved" style="color: green; font-weight: bold;"><i class="glyphicon glyphicon-saved"></i>Score Saved</h5>
+                </div>
+                <form id="saveUser" class="form" v-on:submit.stop.prevent="saveScore">
+                    <div class="modal-body">
+
+                        <div class="form-group">
+                            <label for="Name">Name</label>
+                            <input type="text" class="form-control" id="Name" placeholder="Player" v-model="name" />
+                            <span v-if="errors.name != ''" class="text-danger" style="font-weight: bold;">{{errors.name}}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="Score">Score</label>
+                            <input type="text" class="form-control" readonly="readonly" id="Score" v-model="level" />
+                            <span v-if="errors.score != ''" class="text-danger" style="font-weight: bold;">{{errors.score}}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="DifficultyLevel">Difficulty Level</label>
+                            <input type="text" class="form-control" readonly="readonly" id="DifficultyLevel" v-model="difficultyLevel" />
+                            <span v-if="errors.difficultyLevel != ''" class="text-danger" style="font-weight: bold;">{{errors.difficultyLevel}}</span>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" style="margin-right:28px">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="rules" class="col-lg-3">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h2 class="panel-title">Rules</h2>
+            </div>
+            <div class="panel-body">
+                <p>
+                    My Name Is Simon <br />
+                    Watch, Remember, Repeat! <br />
+                    Simon says repeat my flashing LIGHTS and SOUNDS<br />
+                    Simon's a computer, Simon has a brain, you either do what Simon says or else go down the drain<br />
+                </p>
+                <p>Instructions:</p>
+                <ul class="list-group">
+                    <li class="list-group-item">On starting the game, you will be given a series of button presses.</li>
+                    <li class="list-group-item">After your turn is shown, press the same buttons in the same sequence</li>
+                    <li class="list-group-item">You get one point for each consecutive correct sequence</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section scripts {
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                gameOn: false,
+                showSaveScorePopUp: false,
+                isRedButtonActive: false,
+                isGreenButtonActive: false,
+                isBlueButtonActive: false,
+                isYellowButtonActive: false,
+                isScoreSaved: false,
+                userTurn: false,
+                level: 0,
+                index: 0,
+                difficultyLevel: "easy",
+                name: "",
+                pattern: [],
+                effectTime: 0,
+
+                errors: {
+                    name: "",
+                    score: "",
+                    difficultyLevel: ""
+                }
+            },
+            mounted: function () {
+                // PERFORM ANY ACTIONS WHEN THE PAGE LOADS HERE - SIMILAR TO JQUERY DOCUMENT.READY
+
+            },
+            methods: {
+                loadGamePattern: function () {
+                    console.log("loading pattern");
+                    var self = this;
+                    $.ajax({
+                        url: "api/Users/getGamePattern",
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        method: 'GET'
+                    }).done(function (pattern, status, xhr) {
+                        // process the response when status code is 200-299
+                        self.pattern = pattern;
+                    }).fail(function (xhr, status, error) {
+                        // deal with error from server (status code 400-599)
+                        alert("There was an error retrieving pattern");
+                    });
+                },
+                getDifficultyLevelInteger: function () {
+                    var self = this;
+                    var difficultyInt = 0;
+                    switch (self.difficultyLevel) {
+                        case 'easy': difficultyInt = 1;
+                            break;
+                        case 'med': difficultyInt = 2;
+                            break;
+                        case 'hard': difficultyInt = 3;
+                            break;
+                        default:
+                    }
+                    return difficultyInt;
+                },
+                saveScore: function () {
+                    console.log("save Score");
+                    var self = this;
+                    var form = {
+                        userName: self.name,
+                        score: self.level,
+                        difficultyLevel: self.getDifficultyLevelInteger()
+                    };
+                    self.errors.name = "";
+                    self.errors.score = "";
+                    self.errors.difficultyLevel = "";
+                    $.ajax({
+                        url: "api/Users",
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        method: 'POST',
+                        data: JSON.stringify(form)
+                    }).done(function (pattern, status, xhr) {
+                        // process the response when status code is 200-299
+                        self.showSaveScorePopUp = false;
+                        self.isScoreSaved = true;
+                        console.log("score saved");
+                        //to do
+                        setTimeout(function () {
+                            $('#showSaveScoreModal').modal('hide');
+                        }, 1200);
+                        
+                    }).fail(function (xhr, status, error) {
+                        // deal with error from server (status code 400-599)
+                        if (xhr.status == 400) {
+                            if (form.userName == "") {
+                                self.errors.name = xhr.responseText;
+                            }
+                            if (form.score < 1) {
+                                self.errors.score = xhr.responseText;
+                            }
+                            if (form.difficultyLevel < 1 || form.difficultyLevel>3) {
+                                self.errors.difficultyLevel = xhr.responseText;
+                            }
+                        } else {
+                            alert("An unexpected error occured");
+                        }
+                    });
+                },
+                computerTurn: function () {
+                    console.log("Computer turn");
+                    var self = this;
+                    self.index = 0;
+                    self.showPattern(function () {
+                        self.userTurn = true;
+                    });
+                },
+                clickGameButton: function (boxNum) {
+                    var self = this;
+                    self.clickColorButton(boxNum);
+                    var isCorrect = self.checkPattern(boxNum);
+                    if (!isCorrect) {
+                        // If user clicks wrong box
+                        console.log("Wrong Pattern");
+                        self.processGameOver();
+                    }
+                    else {
+
+                        // If the current click is correct
+                        if (self.index === self.level) {
+                            console.log("Correct Pattern");
+                            // If total items in pattern clicked
+                            self.level++;
+                            setTimeout(function () {
+                                self.userTurn = false;
+                                self.computerTurn();
+                            }, 1000);
+                        } else {
+                            console.log("Correct Click");
+                            // Pending clicks exist
+                            this.index++;
+                        }
+                    }
+                },
+                checkPattern: function (boxNum) {
+                    return (this.pattern[this.index] === boxNum);
+                },
+                processGameOver: function () {
+                    var self = this;
+                    console.log("process Game Over");
+                    if (self.level > 0) {
+                        self.showSaveScorePopUp = true;
+                        $('#showSaveScoreModal').modal('show');
+                    }
+                    else {
+                        alert("Game Over!");
+                    }
+                    $('#startGameSwitch').prop('checked', false);
+                    self.gameOn = false;
+                    self.enableChangeDifficultyLevelButtons();
+                },
+                enableChangeDifficultyLevelButtons: function () {
+                    $('#easy').prop('disabled', false);
+                    $('#medium').prop('disabled', false);
+                    $('#hard').prop('disabled', false);
+                },
+                disableChangeDifficultyLevelButtons: function () {
+                    $('#easy').prop('disabled', true);
+                    $('#medium').prop('disabled', true);
+                    $('#hard').prop('disabled', true);
+                },
+                resetGame: function () {
+                    var self = this;
+                    self.level = 0;
+                    self.userTurn = false;
+                    self.pattern = [];
+                    self.isScoreSaved = false;
+                    self.index = 0;
+                },
+                startGame: function () {
+                    var self = this;
+                    if (self.gameOn) {
+                        console.log("Game stopped by user");
+                        $('#easy').prop('disabled', false);
+                        $('#medium').prop('disabled', false);
+                        $('#hard').prop('disabled', false);
+                        self.gameOn = false;
+                        self.enableChangeDifficultyLevelButtons();
+                    }
+                    else {
+                        console.log("Game started");
+                        self.resetGame();
+                        $('#startGameSwitch').prop('checked', true);
+                        self.gameOn = true;
+                        self.disableChangeDifficultyLevelButtons();
+                        self.showSaveScorePopUp = false;
+                        self.loadGamePattern();
+                        self.computerTurn();
+                    }
+                },
+                showPattern: function (callback) {
+                    console.log("Show pattern called");
+                    var self = this
+
+                    self.effectTime = 200;
+                    switch (self.difficultyLevel) {
+                        case 'easy':
+                            self.effectTime = 500;
+                            break;
+                        case 'med':
+                            self.effectTime = 300;
+                            break;
+                        case 'hard':
+                            self.effectTime = 200;
+                            break;
+                        default:
+                    }
+
+                    var i = 0;
+                    timer = setInterval(function () {
+                        if (i >= self.level) {
+                            clearInterval(timer);
+                        }
+                        self.clickColorButton(self.pattern[i]);
+                        i++;
+                    }, self.effectTime + 300);
+                    callback();
+                },
+                clickColorButton: function (buttonNum) {
+                    console.log("Color Button Cliked: " + buttonNum);
+                    //This method takes in a box number as parameter
+                    //Then toggles its class as active
+                    //Then plays the respective audio file
+                    //Then reverts the class back to original
+                    var self = this;
+                    switch (buttonNum) {
+                        case 1:
+                            this.isRedButtonActive = true;
+                            audio1.play();
+                            setTimeout(function () {
+                                self.isRedButtonActive = false;
+                            }, self.effectTime);
+                            break;
+                        case 2:
+                            this.isGreenButtonActive = true;
+                            audio2.play();
+                            setTimeout(function () {
+                                self.isGreenButtonActive = false;
+                            }, self.effectTime);
+                            break;
+                        case 3:
+                            this.isBlueButtonActive = true;
+                            audio3.play();
+                            setTimeout(function () {
+                                self.isBlueButtonActive = false;
+                            }, self.effectTime);
+                            break;
+                        case 4:
+                            this.isYellowButtonActive = true;
+                            audio4.play();
+                            setTimeout(function () {
+                                self.isYellowButtonActive = false;
+                            }, self.effectTime);
+                            break;
+                    }
+                    return;
+                }
+
+            },
+            computed: {
+                // CREATE ANY CALCULATED PROPERTIES HERE. THEY BEHAVE LIKE READ-ONLY DATA
+            }
+        });
+
+    </script>
+}

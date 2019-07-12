@@ -1,0 +1,138 @@
+﻿@page
+@model RulesModel
+@{
+    ViewData["Title"] = "Leaderboard";
+}
+
+@*Leaderboard*@
+<div id="app">
+    <h2 style="text-align:left;">Leaderboard</h2>
+
+    @*Easy*@
+    <div class="panel panel-success">
+        <div class="panel-heading">
+            <h3 class="panel-title"><i class="glyphicon glyphicon-list"></i> Easy</h3>
+        </div>
+        <div class="panel-body">
+            <!--Show Top 10 Scorers-->
+            <table class="table table-striped">
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Hi-Score</th>
+                </tr>
+
+                <tr v-for="players in topEasyScorePlayers">
+                    <td>{{players.rank}}</td>
+                    <td>{{players.userName}}</td>
+                    <td>{{players.score}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    @*Medium*@
+    <div class="panel panel-warning">
+        <div class="panel-heading">
+            <h3 class="panel-title"><i class="glyphicon glyphicon-list"></i> Medium</h3>
+        </div>
+        <div class="panel-body">
+            <!--Show Top 10 Scorers-->
+            <table class="table table-striped">
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Hi-Score</th>
+                </tr>
+
+                <tr v-for="players in topMediumScorePlayers">
+                    <td>{{players.rank}}</td>
+                    <td>{{players.userName}}</td>
+                    <td>{{players.score}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    @*Hard*@
+    <div class="panel panel-danger">
+        <div class="panel-heading">
+            <h3 class="panel-title"><i class="glyphicon glyphicon-list"></i> Hard</h3>
+        </div>
+        <div class="panel-body">
+            <!--Show Top 10 Scorers-->
+            <table class="table table-striped">
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Hi-Score</th>
+                </tr>
+
+                <tr v-for="players in topHardScorePlayers">
+                    <td>{{players.rank}}</td>
+                    <td>{{players.userName}}</td>
+                    <td>{{players.score}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+@section scripts {
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                gameon: false,
+                topEasyScorePlayers: [],
+                topMediumScorePlayers: [],
+                topHardScorePlayers: []
+            },
+            mounted: function () {
+                // PERFORM ANY ACTIONS WHEN THE PAGE LOADS HERE - SIMILAR TO JQUERY DOCUMENT.READY
+                this.getTopScorers();
+            },
+            methods: {
+                getTopScorersForEachLevel: function (difficultyLevel) {
+                    console.log("Fetching High Scorers");
+                    var self = this;
+                    $.ajax({
+                        url: "api/Users/getTopScorers?difficultyLevel=" + difficultyLevel,
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        method: 'GET'
+                    }).done(function (simonResponseDataList, status, xhr) {
+                        // process the response when status code is 200-299
+                        console.log("Fetched Top Scorers");
+                        $.each(simonResponseDataList,
+                            function (idx, player) {
+                                player.rank = idx + 1;
+                            });
+                        switch (difficultyLevel) {
+                            case 1: self.topEasyScorePlayers = simonResponseDataList;
+                                break;
+                            case 2: self.topMediumScorePlayers = simonResponseDataList;
+                                break;
+                            case 3: self.topHardScorePlayers = simonResponseDataList;
+                                break;
+                            default:
+                        }
+                    }).fail(function (xhr, status, error) {
+                        // deal with error from server (status code 400-599)
+                        alert("There was an error retrieving pattern");
+                    });
+                },
+                getTopScorers: function () {
+                    this.getTopScorersForEachLevel(1);
+                    this.getTopScorersForEachLevel(2);
+                    this.getTopScorersForEachLevel(3)
+                }
+            },
+            computed: {
+                // CREATE ANY CALCULATED PROPERTIES HERE. THEY BEHAVE LIKE READ-ONLY DATA
+            }
+        });
+
+    </script>
+}
